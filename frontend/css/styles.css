@@ -318,23 +318,27 @@ nav h1 a {
 }
 
 #restaurant-container, 
-#reviews-container {
+#reviews-container,
+#add-review-container {
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
   padding: 140px 40px 30px;
   width: 50%;
 }
 
-#reviews-container {
+#reviews-container,
+#add-review-container  {
   padding: 30px 40px 80px;
 }
 
-#reviews-container h2 {
+#reviews-container h2,
+#add-review-container h2 {
   color: #58007e;
   font-size: 24pt;
   font-weight: 300;
   letter-spacing: -1px;
   padding-bottom: 1pt;
+  width: 100%;
 }
 
 #reviews-list {
@@ -415,6 +419,57 @@ nav h1 a {
   color: #666;
 }
 
+#add-review-container {
+  box-sizing: border-box;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+#add-review-container form {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#add-review-container input,
+#add-review-container textarea,
+#add-review-container select {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #eee;
+  height: 30px;
+  background-color: #fff;
+}
+
+#add-review-container textarea {
+  height: 100px;
+}
+
+#add-review-container .input-small {
+  width: 50%;
+  box-sizing: border-box;
+}
+
+#add-review-container .input-small:first-of-type {
+  padding-right: 20px;
+}
+
+#add-review-container .input-large {
+  width: 100%;
+}
+
+#add-review-container button {
+  padding: 10px 20px;
+  color: #fff;
+  text-transform: uppercase;
+  background-color: orange;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem; 
+}
+
 /* ====================== Media Queries ====================== */
 @media screen and (max-width: 1280px) {
   .filter-options {
@@ -429,7 +484,8 @@ nav h1 a {
   }
 
   #reviews-container, 
-  #restaurant-container {
+  #restaurant-container,
+  #add-review-container {
     display: block;
     width: 100%;
     margin: 0;
@@ -459,7 +515,8 @@ nav h1 a {
 
 @media screen and (max-width: 800px) {
   #restaurant-container,
-  #reviews-container {
+  #reviews-container,
+  #add-review-container {
     padding-right: 20px;
     padding-left: 20px;
   }
@@ -476,5 +533,13 @@ nav h1 a {
     width: 100%;
     padding-top: 10px;
     padding-left: 0;
+  }
+
+  #add-review-container .input-small {
+    width: 100%;
+  }
+
+  #add-review-container .input-small:first-of-type {
+    padding-right: 0;
   }
 }

@@ -53,6 +53,36 @@
 				</div>
 			</section>
 			<!-- end restaurant -->
+			<!-- Beginning review form -->
+      <section id="add-review-container">
+        <form>
+          <h2>
+            Add a review
+          </h2>
+          <div class="input-small">
+            <label for="name">Your name:</label>
+            <input type="text" id="name" name="user_name">
+          </div>
+          <div class="input-small">
+            <label for="rating">Your rating:</label>
+            <select id="rating" name="user_rating">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div class="input-large">
+            <label for="comment">Your comment:</label>
+            <textarea id="comment" name="user_comment"></textarea>
+          </div>
+          <div class="button">
+            <button type="submit">Submit</button>
+          </div>
+        </form>
+      </section>
+      <!-- End review form -->
 			<!-- Beginning reviews -->
 			<section id="reviews-container">
 				<ul id="reviews-list"></ul>
