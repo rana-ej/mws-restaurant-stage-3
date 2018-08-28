@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	initMap();
 });
 
+
+submitUserReview = (name, rating, comment) => {
+	console.log(name, rating, comment);
+}
+
 /**
 	* Initialize leaflet map
 */
@@ -15,7 +20,7 @@ initMap = () => {
 	fetchRestaurantFromURL((error, restaurant) => {
 		if (error) { // Got an error!
 			console.error(error);
-			} else {
+		} else {
 			try {
 				if(self.newMap == null)
 				{
@@ -68,7 +73,7 @@ fetchRestaurantFromURL = (callback) => {
 	if (!id) { // no id found in URL
 		error = 'No restaurant id in URL'
 		callback(error, null);
-		} else {
+	} else {
 		DBHelper.fetchRestaurantById(id, (error, restaurant) => {
 			self.restaurant = restaurant;
 			if (!restaurant) {
@@ -94,7 +99,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 	const image = document.getElementById('restaurant-img');
 	image.className = 'restaurant-img'
 	image.src = DBHelper.imageUrlForRestaurant(restaurant);
-	image.alt = 'Image for restaurant: ' + restaurant.name;
+	image.alt = restaurant.name;
 
 	const cuisine = document.getElementById('restaurant-cuisine');
 	cuisine.innerHTML = restaurant.cuisine_type;
@@ -150,9 +155,11 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 	}
 	const ul = document.createElement('ul');
 	ul.id = "reviews-list";
-	reviews.forEach(review => {
-		ul.appendChild(createReviewHTML(review));
-	});
+	if(reviews != null) {
+		reviews.forEach(review => {
+			ul.appendChild(createReviewHTML(review));
+		});
+	}
 	container.appendChild(ul);
 }
 

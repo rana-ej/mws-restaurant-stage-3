@@ -37,6 +37,7 @@ const CACHE_URLS = [
 	"/img/8.webp",
 	"/img/9.webp",
 	"/img/10.webp",
+	"/img/undefined.webp",
 ];
 
 // Serviceworker install event.
