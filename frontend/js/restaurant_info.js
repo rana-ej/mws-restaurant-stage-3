@@ -104,6 +104,28 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 	const cuisine = document.getElementById('restaurant-cuisine');
 	cuisine.innerHTML = restaurant.cuisine_type;
 
+	const is_favorite = document.getElementById('restaurant-favorite');
+	if (restaurant.is_favorite == true) {
+		is_favorite.className = 'icon-heart-1 unselectable';
+		is_favorite.setAttribute("aria-label", "Remove from favorite");
+	} else {
+		is_favorite.className = 'icon-heart-empty-1 unselectable';
+		is_favorite.setAttribute("aria-label", "Save as favorite");
+	}
+	
+	is_favorite.tabIndex = "0";
+	is_favorite.addEventListener("click", () => { 
+		if(restaurant.is_favorite) {
+			restaurant.is_favorite = false; 
+			is_favorite.className = 'icon-heart-empty-1 unselectable';
+		  is_favorite.setAttribute("aria-label", "Save as favorite");
+		} else { 
+			restaurant.is_favorite = true;
+		  is_favorite.className = 'icon-heart-1 unselectable';
+		  is_favorite.setAttribute("aria-label", "Remove from favorite");
+		}
+	}, false);
+
 	// fill operating hours
 	if (restaurant.operating_hours) {
 		fillRestaurantHoursHTML();

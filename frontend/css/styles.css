@@ -1,5 +1,18 @@
 @charset "utf-8";
 
+*.unselectable {
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+
+   /*
+     Introduced in IE 10.
+     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+   */
+   -ms-user-select: none;
+   user-select: none;
+}
+
 body,
 td,
 th,
@@ -233,9 +246,9 @@ nav h1 a {
   display: inline-block;
 }
 
-#restaurants-list li a {
+#restaurants-list .details-button {
   background-color: #58007e;
-  border-bottom: 3px solid #eee;
+  border-radius: 5px;
   color: #fff;
   display: inline-block;
   font-size: 10pt;
@@ -248,7 +261,16 @@ nav h1 a {
   position: absolute;
   bottom: 20px;
   left: 20px;
+}
+
+#restaurants-list .save-favorite,
+#restaurants-list .remove-favorite {
+  position: absolute;
+  bottom: 22px;
   right: 20px;
+  color: #f00;
+  display: inline-block;
+  font-size: 22px;
 }
 
 /* ====================== Restaurant Details ====================== */
@@ -302,19 +324,60 @@ nav h1 a {
   margin: 10px 0px;
 }
 
+.restaurant-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 #restaurant-cuisine {
   background-color: #58007e;
   color: #fff;
   font-size: 12pt;
   font-weight: 300;
   letter-spacing: 10px;
-  margin: 0 0 20px;
   padding: 10px 20px;
   text-align: center;
   text-transform: uppercase;
-	width: 100%;
+	width: 50%;
   border-radius: 5px;
   box-sizing: border-box;
+}
+
+#restaurant-favorite-container {
+  width: 50%;
+}
+
+#restaurant-favorite {
+  color: #f00;
+  display: inline-block;
+  font-size: 22px;
+  float: right;
+  border: 1px solid #f00;
+  border-radius: 5px;
+  padding: 5px 20px; 
+  min-width: 100px;
+}
+
+#restaurant-favorite.icon-heart-1::after {
+  content: 'Remove';
+  padding-left: 10px;
+  color: #000;
+  font-size: 1rem;
+  font-style: normal;
+}
+
+#restaurant-favorite.icon-heart-empty-1::after {
+  content: 'Save';
+  padding-left: 10px;
+  color: #000;
+  font-size: 1rem;
+  font-style: normal;
+}
+
+#restaurant-address,
+#restaurant-hours {
+  width: 100%;
 }
 
 #restaurant-container, 
@@ -441,6 +504,7 @@ nav h1 a {
   border: 1px solid #eee;
   height: 30px;
   background-color: #fff;
+  box-sizing: border-box;
 }
 
 #add-review-container textarea {
@@ -541,5 +605,9 @@ nav h1 a {
 
   #add-review-container .input-small:first-of-type {
     padding-right: 0;
+  }
+
+  #restaurant-favorite {
+    padding: 5px 10px; 
   }
 }
