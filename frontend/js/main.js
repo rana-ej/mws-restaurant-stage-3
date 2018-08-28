@@ -187,7 +187,7 @@ createRestaurantHTML = (restaurant) => {
 	more.href = DBHelper.urlForRestaurant(restaurant);
 	more.tabIndex = "0";
 	wrapper.append(more)
-
+	
 	const is_favorite = document.createElement('i');
 	if (restaurant.is_favorite == true) {
 		is_favorite.className = 'remove-favorite icon-heart-1 unselectable';
@@ -198,17 +198,23 @@ createRestaurantHTML = (restaurant) => {
 	}
 	
 	is_favorite.tabIndex = "0";
-	is_favorite.addEventListener("click", () => { 
+	var onFavoriteClick = () => { 
 		if(restaurant.is_favorite) {
 			restaurant.is_favorite = false; 
 			is_favorite.className = 'remove-favorite icon-heart-empty-1 unselectable';
-		  is_favorite.setAttribute("aria-label", "Save as favorite");
+			is_favorite.setAttribute("aria-label", "Save as favorite");
 		} else { 
 			restaurant.is_favorite = true;
-		  is_favorite.className = 'save-favorite icon-heart-1 unselectable';
-		  is_favorite.setAttribute("aria-label", "Remove from favorite");
+			is_favorite.className = 'save-favorite icon-heart-1 unselectable';
+			is_favorite.setAttribute("aria-label", "Remove from favorite");
 		}
-	}, false);
+		DBHelper.toggleRestaurantFavorite(restaurant.id, restaurant.is_favorite);
+	};
+
+	if(!is_favorite.onclick) {
+		is_favorite.onclick = onFavoriteClick;
+	}
+
 	wrapper.append(is_favorite)
 	
 	return li

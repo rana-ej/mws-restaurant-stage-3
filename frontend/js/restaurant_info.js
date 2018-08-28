@@ -8,9 +8,41 @@ document.addEventListener('DOMContentLoaded', (event) => {
 	initMap();
 });
 
+const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
 
-submitUserReview = (name, rating, comment) => {
-	console.log(name, rating, comment);
+storeUserReviewsWithRetry = async () => {
+	if(DEBUG) console.log("storeUserReviewsWithRetry...");
+	var result = false;
+	while(!result) {
+		try {
+			result = await DBHelper.storeUserReviews();
+			//console.log("disabled",result);
+			//result = true;
+		} catch(e) { if(DEBUG) console.log("storeUserReviews", e); };
+		
+		if(!result) {
+			if(DEBUG) console.log("waiting 10 sec...");
+			await timeout(10000);
+		} else {
+			if(DEBUG) console.log("success", result);
+		}
+	}
+}
+
+submitUserReview = async (name, rating, comment) => {
+	try {
+		var restaurant_id = self.restaurant.id;
+		var userReview = {restaurant_id: restaurant_id, name: name, rating: parseInt(rating), comments: comment, date: new Date().toLocaleString(), is_user_review: true};
+		// Store the users review to local cache so it can be displayed while offline
+		await DBHelper.cacheStoreReview(userReview);
+		
+		self.restaurant.reviews.push(userReview);
+		fillReviewsHTML();
+		clearReviewForm();
+		
+		// Then trigger a timer that will send to server, or if no internet, retry after a delay.
+		await storeUserReviewsWithRetry();
+	} catch(e) { console.error(e); };
 }
 
 /**
@@ -105,6 +137,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 	cuisine.innerHTML = restaurant.cuisine_type;
 
 	const is_favorite = document.getElementById('restaurant-favorite');
+	// Initialize correct state for favorite button
 	if (restaurant.is_favorite == true) {
 		is_favorite.className = 'icon-heart-1 unselectable';
 		is_favorite.setAttribute("aria-label", "Remove from favorite");
@@ -114,18 +147,23 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 	}
 	
 	is_favorite.tabIndex = "0";
-	is_favorite.addEventListener("click", () => { 
+	var onFavoriteClick = () => { 
 		if(restaurant.is_favorite) {
 			restaurant.is_favorite = false; 
 			is_favorite.className = 'icon-heart-empty-1 unselectable';
-		  is_favorite.setAttribute("aria-label", "Save as favorite");
+			is_favorite.setAttribute("aria-label", "Save as favorite");
 		} else { 
 			restaurant.is_favorite = true;
-		  is_favorite.className = 'icon-heart-1 unselectable';
-		  is_favorite.setAttribute("aria-label", "Remove from favorite");
+			is_favorite.className = 'icon-heart-1 unselectable';
+			is_favorite.setAttribute("aria-label", "Remove from favorite");
 		}
-	}, false);
+		DBHelper.toggleRestaurantFavorite(restaurant.id, restaurant.is_favorite);
+	};
 
+	if(!is_favorite.onclick) {
+		is_favorite.onclick = onFavoriteClick;
+	}
+	
 	// fill operating hours
 	if (restaurant.operating_hours) {
 		fillRestaurantHoursHTML();
@@ -243,6 +281,15 @@ fillBreadcrumb = (restaurant=self.restaurant) => {
 		li.innerHTML = restaurant.name;
 		breadcrumb.appendChild(li);
 	}
+}
+
+/**
+* Clears the review input form
+*/
+clearReviewForm = () => {
+	document.getElementById('user_name').value = "";
+	document.getElementById('user_rating').value = "1";
+	document.getElementById('user_comment').value = "";
 }
 
 /**

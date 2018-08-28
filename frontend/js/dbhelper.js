@@ -9,7 +9,9 @@ function put(url, data) {
 	});
 }
 
+// Used to enable useful debug logs
 var DEBUG = false;
+
 /**
 	* Common database helper functions.
 */
@@ -62,6 +64,54 @@ class DBHelper {
 				reject();
 			};
 		});
+		return await updateCachedRestaurantsPromise;
+	}
+	
+	/**
+		* Toggles a restaurants favorite status.
+	*/
+	static async toggleRestaurantFavorite(restaurant_id, is_favorite) {
+		if(DEBUG) console.log("toggleRestaurantFavorite", restaurant_id, is_favorite);
+		var db = await DBHelper.initializeIndexedRestaurantsDB();
+		
+		var updateCachedRestaurantsPromise = new Promise(async function(resolve, reject)
+		{
+			var tx = db.transaction("restaurants", "readwrite");
+			var store = tx.objectStore("restaurants");
+			var cursor = await store.openCursor();
+			cursor.onsuccess = async function(event) {
+				var cursor = event.target.result;
+				if(cursor) {
+					try {
+						var updateData = cursor.value;
+						if(cursor.value.id == restaurant_id) {
+							updateData.is_favorite = is_favorite;
+							await cursor.update(updateData);
+							resolve();
+						} else {
+							cursor.continue();
+						}
+					} catch(e) { console.log("Error modifying favorite status for restaurant with id: ", restaurant_id, e); }
+				}
+			};
+			cursor.onerror = function() {
+				reject();
+			};
+
+			// Close the db when the transaction is done
+			tx.oncomplete = function() {
+				db.close();
+				resolve();
+			};
+			tx.onerror = function() {
+				reject();
+			};
+		});
+		
+		await updateCachedRestaurantsPromise;
+		try {
+			await put(DBHelper.TOGGLE_FAVORITE_URL(restaurant_id, is_favorite), {});
+		} catch(e) { console.error("Could not send favorite status to server"); };
 		return await updateCachedRestaurantsPromise;
 	}
 	
@@ -212,6 +262,69 @@ class DBHelper {
 		return await updateCachedReviewsPromise;
 	}
 	
+	static async removeCachedReview(review_id) {
+		var db = await DBHelper.initializeIndexedReviewsDB();
+		var updateCachedReviewsPromise = new Promise(async function(resolve, reject)
+		{
+			// Start a new transaction
+			var tx = db.transaction("reviews", "readwrite");
+			var store = tx.objectStore("reviews");
+			
+			await store.delete(review_id);
+			
+			// Close the db when the transaction is done
+			tx.oncomplete = function() {
+				db.close();
+				resolve();
+			};
+			tx.onerror = function() {
+				reject();
+			};
+		});
+		return await updateCachedReviewsPromise;
+	}
+	
+	static async storeUserReviews() {
+		var result = true;
+		var allReviews = await DBHelper.getCachedReviews(self.restaurant.id);
+		if(DEBUG) console.log("Checking reviews for unsent reviews...", allReviews.length);
+		var userReviews = 0;
+		var successfullySentUserReviews = 0;
+		for(var ii = 0; ii < allReviews.length; ii++) {
+			var curReview = allReviews[ii];
+			if(curReview.is_user_review) {
+				userReviews++;
+				var newUserReview = JSON.parse(JSON.stringify(curReview));
+				// Ensure we get a fresh id from database and we don't store temporary data
+				delete(newUserReview.id);
+				delete(newUserReview.is_user_review);
+				if(DEBUG) console.log("Sending", newUserReview);
+				try {
+					var putResult = await put(DBHelper.REVIEW_PUT_URL, newUserReview);
+					if(DEBUG) console.log("PUT result: ", putResult);
+					if(!putResult || putResult.status !== 201 /* Created */) {
+						var jsonResult = await putResult.json();
+						if(DEBUG) console.log("PUT DATA:", jsonResult);
+						result = false;
+						break;
+					} else {
+						// If we successfully store a user review, we have to update the cached version to reflect the changes
+						successfullySentUserReviews++;
+						var jsonResult = await putResult.json();
+						if(DEBUG) console.log("PUT DATA:", jsonResult);
+						try {
+							await DBHelper.removeCachedReview(curReview.id);
+							await DBHelper.cacheStoreReview(jsonResult);
+						} catch(e) { console.log("Could not update local cached version of review", e); };
+					}
+				} catch(e) { console.log("Could not put review", e); };
+			}
+		}
+		if(DEBUG) console.log("User reviews found: ", userReviews);
+		if(result && userReviews > successfullySentUserReviews) result = false;
+		return result;
+	}
+	
 	/**
 		* Database URL.
 		* Change this to restaurants.json file location on your server.
@@ -235,6 +348,14 @@ class DBHelper {
 	static get REVIEW_PUT_URL() {
 		const port = 1337 // Change this to your server port
 		return `http://localhost:${port}/reviews`;
+	}
+	
+	/**
+		* URL for toggling restaurant favorite.
+	*/
+	static TOGGLE_FAVORITE_URL(restaurant_id, is_favorite) {
+		const port = 1337 // Change this to your server port
+		return `http://localhost:${port}/restaurants/${restaurant_id}/?is_favorite=${is_favorite}`;
 	}
 	
 	/**
