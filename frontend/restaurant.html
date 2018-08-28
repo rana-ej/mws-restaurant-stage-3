@@ -25,7 +25,7 @@
 				</h1>
 			</nav>
 			<!-- Beginning breadcrumb -->
-			<ul id="breadcrumb" >
+			<ul id="breadcrumb" aria-label="Breadcrumb">
 				<li>
 					<a href="/" tabindex="0">Home</a>
 				</li>
@@ -38,13 +38,13 @@
 		<!-- Beginning main -->
 		<main id="maincontent">
 			<!-- Beginning map -->
-			<section id="map-container" aria-label="Map">
-				<div id="map"></div>
+			<section id="map-container">
+				<div id="map" role="application" aria-label="External map application"></div>
 			</section>
 			<!-- End map -->
 			<!-- Beginning restaurant -->
 			<section id="restaurant-container">
-				<h1 id="restaurant-name"></h1>
+				<h2 id="restaurant-name"></h2>
 				<img id="restaurant-img">
 				<div class="restaurant-details">
 					<p id="restaurant-cuisine"></p>
@@ -85,7 +85,7 @@
       <!-- End review form -->
 			<!-- Beginning reviews -->
 			<section id="reviews-container">
-				<ul id="reviews-list"></ul>
+				<ul id="reviews-list" aria-label="List of reviews"></ul>
 			</section>
 		<!-- End reviews -->
 		</main>
