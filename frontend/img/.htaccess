@@ -1,4 +1,4 @@
-<FilesMatch "\.(?i:gif|jpe?g|png|ico|css|swf)$">
+<FilesMatch "\.(?i:gif|jpe?g|png|ico|css|webp)$">
 
   <IfModule mod_headers.c>
     Header set Cache-Control "max-age=172800, public, must-revalidate"
