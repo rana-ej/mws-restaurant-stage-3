@@ -8,6 +8,7 @@ function put(url, data) {
 		body: JSON.stringify(data)
 	});
 }
+const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
 
 // Used to enable useful debug logs
 var DEBUG = false;
@@ -111,7 +112,34 @@ class DBHelper {
 		await updateCachedRestaurantsPromise;
 		try {
 			await put(DBHelper.TOGGLE_FAVORITE_URL(restaurant_id, is_favorite), {});
-		} catch(e) { console.error("Could not send favorite status to server"); };
+		} catch(e) { 
+			if(DEBUG) console.error("Could not send favorite status to server"); 
+			var offlinePendingUpdate = async () => {
+				var notSent = true;
+				while(notSent) {
+					if(navigator.onLine) {
+						if(DEBUG) console.log("online again, trying to send to server...");
+						try {
+							var result = await put(DBHelper.TOGGLE_FAVORITE_URL(restaurant_id, is_favorite), {});
+							if(result && result.status === 200) {
+								notSent = false;
+								if(DEBUG) console.log("success");
+							} else {
+								if(DEBUG) console.log("error, retrying again...");
+								await timeout(500);
+							}
+						} catch(e) { 
+							notSent = true; 
+							await timeout(500);
+						}
+					} else {
+						if(DEBUG) console.log("offline");
+						await timeout(500);
+					}
+				}
+			};
+			offlinePendingUpdate();
+		};
 		return await updateCachedRestaurantsPromise;
 	}
 	
