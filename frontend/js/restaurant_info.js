@@ -15,14 +15,13 @@ storeUserReviewsWithRetry = async () => {
 	var result = false;
 	while(!result) {
 		try {
-			result = await DBHelper.storeUserReviews();
-			//console.log("disabled",result);
-			//result = true;
+			if(navigator.onLine) {
+				result = await DBHelper.storeUserReviews();
+			}
 		} catch(e) { if(DEBUG) console.log("storeUserReviews", e); };
 		
 		if(!result) {
-			if(DEBUG) console.log("waiting 10 sec...");
-			await timeout(10000);
+			await timeout(500);
 		} else {
 			if(DEBUG) console.log("success", result);
 		}
@@ -30,26 +29,29 @@ storeUserReviewsWithRetry = async () => {
 }
 
 submitUserReview = async (name, rating, comment) => {
-	try {
-		var restaurant_id = self.restaurant.id;
-		var userReview = {restaurant_id: restaurant_id, name: name, rating: parseInt(rating), comments: comment, date: new Date().toLocaleString(), is_user_review: true};
-		// Store the users review to local cache so it can be displayed while offline
-		await DBHelper.cacheStoreReview(userReview);
-		
-		self.restaurant.reviews.push(userReview);
-		fillReviewsHTML();
-		clearReviewForm();
-		
-		// Then trigger a timer that will send to server, or if no internet, retry after a delay.
-		await storeUserReviewsWithRetry();
-	} catch(e) { console.error(e); };
+	fetchRestaurantFromURL(async (error, restaurant) => {
+		try {
+			const restaurant_id = self.restaurant.id;
+			var userReview = {restaurant_id: restaurant_id, name: name, rating: parseInt(rating), comments: comment, date: new Date().toLocaleString(), is_user_review: true};
+			// Store the users review to local cache so it can be displayed while offline
+			await DBHelper.cacheStoreReview(userReview);
+			
+			if(!self.restaurant.reviews) self.restaurant.reviews = [];
+			self.restaurant.reviews.push(userReview);
+			fillReviewsHTML();
+			clearReviewForm();
+			
+			// Then trigger a timer that will send to server, or if no internet, retry after a delay.
+			await storeUserReviewsWithRetry();
+		} catch(e) { console.error(e); };
+	});
 }
 
 /**
 	* Initialize leaflet map
 */
-initMap = () => {
-	fetchRestaurantFromURL((error, restaurant) => {
+initMap = async () => {
+	await fetchRestaurantFromURL((error, restaurant) => {
 		if (error) { // Got an error!
 			console.error(error);
 		} else {
@@ -107,13 +109,13 @@ fetchRestaurantFromURL = (callback) => {
 		callback(error, null);
 	} else {
 		DBHelper.fetchRestaurantById(id, (error, restaurant) => {
-			self.restaurant = restaurant;
-			if (!restaurant) {
+			self.restaurant = JSON.parse(JSON.stringify(restaurant));
+			if (!self.restaurant) {
 				console.error(error);
 				return;
 			}
 			fillRestaurantHTML();
-			callback(null, restaurant)
+			callback(null, JSON.parse(JSON.stringify(restaurant)))
 		});
 	}
 }

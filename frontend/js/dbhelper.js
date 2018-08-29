@@ -141,6 +141,11 @@ class DBHelper {
 				var restaurant = restaurants[ii];
 				restaurant.reviews = await DBHelper.getCachedReviews(restaurant.id);
 			}
+		} else {
+			for(var ii = 0; ii < restaurants.length; ii++) {
+				var restaurant = restaurants[ii];
+				restaurant.reviews = [];
+			}
 		}
 		return new Promise(function(resolve,reject) { resolve(restaurants); });
 	}
@@ -259,7 +264,13 @@ class DBHelper {
 				reject();
 			};
 		});
-		return await updateCachedReviewsPromise;
+		
+		// Restore self.restaurant after updateCachedReviewsPromise mysteriously sets it to null
+		var temp = null;
+		if(self.restaurant) temp = JSON.parse(JSON.stringify(self.restaurant)); 
+		await updateCachedReviewsPromise;
+		if(temp) self.restaurant = temp;
+		return new Promise(function(resolve,reject) { resolve(); });
 	}
 	
 	static async removeCachedReview(review_id) {
@@ -444,31 +455,6 @@ class DBHelper {
 								}
 							}
 						}
-						/*
-						restaurants.forEach((restaurant) => {
-							for(var ii = 0; ii < fetchedReviews.length; ii++) {
-								var curReview = fetchedReviews[ii];
-								var found = false;
-								for(var jj = 0; restaurant.reviews && jj < restaurant.reviews.length; jj++) {
-									var existingRestaurantReview = restaurant.reviews[jj];
-									if(existingRestaurantReview.id === curReview.id) {
-										found = true;
-										if(JSON.stringify(existingRestaurantReview) !== JSON.stringify(curReview)) {
-											// Online review has changed, refresh local review
-											restaurant.reviews[jj] = curReview;
-											DBHelper.cacheStoreReview(curReview);
-										}
-									}
-								}
-								if(!found) {
-									// Review did not exist in local cache, add it
-									console.log("The online review was added to local cache: " + curReview.id);
-									DBHelper.cacheStoreReview(curReview);
-									if(!restaurant.reviews) restaurant.reviews = [];
-									restaurant.reviews.push(curReview);
-								}
-							}
-						});*/
 					}
 				} catch(e) { console.log("Could not fetch reviews, serving cached version of reviews."); }
 				// Send restaurants fetched from server to UI
@@ -636,4 +622,3 @@ class DBHelper {
 	} */
 	
 }
-
